@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageInfo;
 import android.content.pm.ApplicationInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.annotation.TargetApi;
 
@@ -128,11 +129,20 @@ public class AppAvailability implements MethodCallHandler {
 
   @TargetApi(Build.VERSION_CODES.CUPCAKE)
   private void launchApp(String packageName, Result result) {
+    String uri = null;
+    if(packageName.contains(":::")) {
+      String[] split = packageName.split(":::");
+      packageName = split[0];
+      uri = split[1];
+    }
     PackageInfo info = getAppPackageInfo(packageName);
 
     if(info != null) {
       Intent launchIntent = registrar.context().getPackageManager().getLaunchIntentForPackage(packageName);
       if (launchIntent != null) {
+        if(uri != null) {
+          launchIntent.setData(Uri.parse(uri));
+        }
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         registrar.context().startActivity(launchIntent);
         result.success(null);
